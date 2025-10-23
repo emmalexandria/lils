@@ -5,7 +5,7 @@ use std::fmt::Display;
 use crossterm::style::StyledContent;
 pub use short::short_display;
 
-use crate::files::File;
+use crate::files::FsEntry;
 
 pub struct MultiStyled<D>
 where

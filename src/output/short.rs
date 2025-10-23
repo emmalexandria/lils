@@ -5,19 +5,24 @@ use crossterm::{
 
 use crate::{
     Config,
-    files::{Directory, EntryType, File},
+    files::{EntryType, FsEntry},
     output::MultiStyled,
     sorting::sort,
     style::ls_style,
 };
 
-pub fn short_display(directory: &Directory, config: &Config) -> String {
+pub fn short_display(root: &FsEntry, config: &Config) -> String {
     let style = ls_style();
+    if root.children.is_none() {
+        return root.name.clone();
+    }
+
+    let children = root.children.clone().unwrap();
 
     let (width, _) = size().unwrap_or((160, 0));
     let mut lines: Vec<String> = Vec::new();
     let mut longest_len = 1;
-    let longest_file = directory.files.iter().max_by_key(|f| f.name.len());
+    let longest_file = children.iter().max_by_key(|f| f.name.len());
 
     if let Some(longest) = longest_file {
         longest_len = longest.name.len();
@@ -27,7 +32,7 @@ pub fn short_display(directory: &Directory, config: &Config) -> String {
 
     let mut curr = String::new();
     let mut line_pos = 0;
-    let files = sort(&directory.files, config.sorting_mode, config.reverse_sort);
+    let files = sort(&children, config.sorting_mode, config.reverse_sort);
 
     for f in &files {
         let mut output: MultiStyled<String> = style.apply(f).into();
@@ -55,7 +60,7 @@ pub fn short_display(directory: &Directory, config: &Config) -> String {
     lines.join("\n")
 }
 
-fn display_file(file: &File, content: &mut MultiStyled<String>) {
+fn display_file(file: &FsEntry, content: &mut MultiStyled<String>) {
     let suffix = get_suffix(file);
     if let Some(s) = suffix {
         content.push(s.to_string().stylize())
@@ -73,7 +78,7 @@ fn pad_right(input: &mut MultiStyled<String>, length: usize) {
     input.push(pad.stylize())
 }
 
-fn get_suffix(file: &File) -> Option<char> {
+fn get_suffix(file: &FsEntry) -> Option<char> {
     match file.e_type {
         EntryType::Directory => Some('/'),
         EntryType::Socket => Some('='),

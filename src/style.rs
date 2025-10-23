@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crossterm::style::{ContentStyle, StyledContent, Stylize};
 
-use crate::files::{EntryType, File, FileType};
+use crate::files::{EntryType, FileType, FsEntry};
 
 #[derive(Default, Debug, Clone)]
 pub struct LilsStyle {
@@ -33,7 +33,7 @@ impl LilsStyle {
         self
     }
 
-    pub fn apply(&self, file: &File) -> StyledContent<String> {
+    pub fn apply(&self, file: &FsEntry) -> StyledContent<String> {
         let name = file.name.clone();
         match file.e_type {
             EntryType::Directory => self.directory.apply(name),

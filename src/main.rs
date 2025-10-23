@@ -4,7 +4,7 @@ use clap::ArgMatches;
 
 use crate::{
     cli::{get_cli, get_sorting_mode},
-    files::Directory,
+    files::FsEntry,
     output::short_display,
     sorting::SortingMode,
 };
@@ -55,12 +55,12 @@ fn print_paths(matches: ArgMatches, config: Config) -> io::Result<()> {
         .cloned()
         .collect();
 
-    let directories: Vec<Directory> = paths
+    let entries: Vec<FsEntry> = paths
         .iter()
-        .flat_map(|p| Directory::from_path(p, config.recurse, config.depth))
+        .flat_map(|p| FsEntry::from_path(p, &config))
         .collect();
 
-    println!("{}", short_display(&directories[0], &config));
+    println!("{}", short_display(&entries[0], &config));
 
     Ok(())
 }

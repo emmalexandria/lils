@@ -1,8 +1,8 @@
-use std::{fs, os::unix::fs::MetadataExt, path::Path};
+use std::{fs, os::unix::fs::MetadataExt, path::Path, rc::Rc};
 
 use clap::ValueEnum;
 
-use crate::files::{Directory, File};
+use crate::files::{EntryChildren, FsEntry};
 
 #[derive(Clone, Copy, ValueEnum, Debug, Default)]
 pub enum SortingMode {
@@ -13,7 +13,7 @@ pub enum SortingMode {
     None,
 }
 
-pub fn sort(files: &Vec<File>, mode: SortingMode, reverse: bool) -> Vec<File> {
+pub fn sort(files: &EntryChildren, mode: SortingMode, reverse: bool) -> Vec<Rc<FsEntry>> {
     let mut output = match mode {
         SortingMode::Time => time_sort(files),
         SortingMode::Name => name_sort(files),
@@ -28,19 +28,19 @@ pub fn sort(files: &Vec<File>, mode: SortingMode, reverse: bool) -> Vec<File> {
     output
 }
 
-fn time_sort(files: &Vec<File>) -> Vec<File> {
+fn time_sort(files: &EntryChildren) -> EntryChildren {
     let mut output = files.clone();
     output.sort_by(|a, b| a.times.modified.cmp(&b.times.modified));
     output
 }
 
-fn name_sort(files: &Vec<File>) -> Vec<File> {
+fn name_sort(files: &EntryChildren) -> EntryChildren {
     let mut output = files.clone();
     output.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     output
 }
 
-fn size_sort(files: &Vec<File>) -> Vec<File> {
+fn size_sort(files: &EntryChildren) -> EntryChildren {
     let mut output = files.clone();
     output.sort_by(|a, b| get_file_size(&b.path).cmp(&get_file_size(&a.path)));
     output

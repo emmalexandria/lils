@@ -10,7 +10,7 @@ use std::{
 
 use crate::Config;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EntryType {
     Directory,
     File(FileType),
@@ -68,16 +68,24 @@ pub struct Times {
     pub access: time::SystemTime,
 }
 
+pub type EntryChildren = Vec<Rc<FsEntry>>;
+
 #[derive(Debug, Clone)]
-pub struct File {
+pub struct FsEntry {
     pub name: String,
     pub path: PathBuf,
     pub e_type: EntryType,
     pub times: Times,
+    pub children: Option<EntryChildren>,
 }
 
-impl File {
-    pub fn new<P: AsRef<Path>>(path: P, e_type: EntryType, times: Times) -> Self {
+impl FsEntry {
+    pub fn new<P: AsRef<Path>>(
+        path: P,
+        e_type: EntryType,
+        times: Times,
+        children: Option<Vec<Rc<FsEntry>>>,
+    ) -> Self {
         let path = path.as_ref();
         let name = path
             .file_name()
@@ -90,13 +98,13 @@ impl File {
             path: path.into(),
             e_type,
             times,
+            children,
         }
     }
 
-    pub fn from_path<P: AsRef<Path>>(path: P) -> io::Result<Self> {
+    pub fn from_path<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<Self> {
         let path = path.as_ref();
         let ext = path.extension().unwrap_or(OsStr::new("")).to_string_lossy();
-        let name = path.file_name().unwrap_or_default().to_string_lossy();
         let metadata = fs::metadata(path)?;
         let e_type = EntryType::from_metadata(&metadata, &ext);
         let times = Times {
@@ -105,77 +113,24 @@ impl File {
             modified: metadata.modified().unwrap(),
         };
 
-        Ok(Self::new(path, e_type, times))
-    }
-}
+        let mut children = None;
 
-#[derive(Debug, Clone)]
-pub struct Directory {
-    pub files: Vec<File>,
-    pub children: Vec<Rc<Directory>>,
-    pub name: String,
-}
-
-impl Directory {
-    pub fn from_path<P: AsRef<Path>>(path: P, recurse: bool, max_depth: usize) -> io::Result<Self> {
-        Self::build_from_path(path, recurse, max_depth, 0)
-    }
-
-    fn build_from_path<P: AsRef<Path>>(
-        path: P,
-        recurse: bool,
-        max_depth: usize,
-        depth: usize,
-    ) -> io::Result<Self> {
-        let path = path.as_ref();
-        let name = path
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .to_string();
-
-        let mut files: Vec<File> = Vec::new();
-        let mut children: Vec<Rc<Directory>> = Vec::new();
-        if !path.is_dir() {
-            return Err(io::Error::new(
-                io::ErrorKind::NotADirectory,
-                "directory cannot be built from path to file",
-            ));
+        if e_type == EntryType::Directory {
+            children = Some(Self::get_children(path, config)?);
         }
 
+        Ok(Self::new(path, e_type, times, children))
+    }
+
+    fn get_children<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<EntryChildren> {
+        let path = path.as_ref();
         let rd = fs::read_dir(path)?;
+        let mut children = Vec::new();
 
-        for entry in rd.flatten() {
-            let ft = entry.file_type()?;
-            if ft.is_file() || ft.is_symlink() {
-                files.push(File::from_path(entry.path())?);
-            } else if ft.is_dir() && recurse && depth < max_depth {
-                children.push(Rc::new(Directory::build_from_path(
-                    entry.path(),
-                    recurse,
-                    max_depth,
-                    depth + 1,
-                )?));
-            }
+        for e in rd.flatten() {
+            children.push(Rc::new(Self::from_path(e.path(), config)?));
         }
 
-        Ok(Self {
-            name,
-            files,
-            children,
-        })
-    }
-
-    pub fn from_files<I: Iterator<Item = File>, P: AsRef<Path>>(
-        files: I,
-        path: P,
-    ) -> io::Result<Self> {
-        let path = path.as_ref();
-        let name = path.file_name().unwrap_or_default().to_string_lossy();
-        Ok(Self {
-            files: files.collect(),
-            name: name.to_string(),
-            children: Vec::new(),
-        })
+        Ok(children)
     }
 }
