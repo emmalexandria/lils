@@ -9,12 +9,12 @@ use crate::{
 pub fn display_name(
     entry: &FsEntry,
     style: &LilsStyle,
-    no_suffix: bool,
+    suffix: bool,
     icons: bool,
 ) -> MultiStyled<String> {
     let applied = style.apply(entry);
     let mut multi: MultiStyled<String> = applied.into();
-    if !no_suffix && let Some(suffix) = get_suffix(entry) {
+    if suffix && let Some(suffix) = get_suffix(entry) {
         multi.push(suffix.to_string().stylize());
     }
     if icons && let Some(icon_raw) = get_icon(entry) {

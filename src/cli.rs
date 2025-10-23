@@ -8,9 +8,10 @@ pub fn get_cli() -> Command {
     let long = command!("long").about("Print the long format");
     let tree = command!("tree").about("Print the tree format");
     let table = command!("table").about("Print the table format");
+    let config = command!("config").about("Write the default config to $HOME/.config/lils.toml");
 
     command!()
-        .subcommands([long, tree, table])
+        .subcommands([long, tree, table, config])
         .arg(
             arg!([path] "Path to directories")
                 .value_parser(value_parser!(PathBuf))
@@ -105,23 +106,20 @@ pub fn get_cli() -> Command {
         )
 }
 
-pub fn get_sorting_mode(matches: &ArgMatches) -> SortingMode {
-    if get_bool(matches, "mod") {
-        return SortingMode::Time;
+pub fn get_sorting_mode(matches: &ArgMatches) -> Option<SortingMode> {
+    if let Some(true) = get_bool(matches, "mod") {
+        return Some(SortingMode::Time);
     }
-    if get_bool(matches, "size") {
-        return SortingMode::Size;
+    if let Some(true) = get_bool(matches, "size") {
+        return Some(SortingMode::Size);
     }
-    if get_bool(matches, "unsorted") {
-        return SortingMode::None;
+    if let Some(true) = get_bool(matches, "unsorted") {
+        return Some(SortingMode::None);
     }
 
-    matches
-        .get_one::<SortingMode>("sort")
-        .copied()
-        .unwrap_or_default()
+    matches.get_one::<SortingMode>("sort").copied()
 }
 
-fn get_bool(matches: &ArgMatches, id: &str) -> bool {
-    matches.get_one::<bool>(id).copied().unwrap_or_default()
+pub fn get_bool(matches: &ArgMatches, id: &str) -> Option<bool> {
+    matches.get_one::<bool>(id).copied()
 }

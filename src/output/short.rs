@@ -4,15 +4,15 @@ use crossterm::{
 };
 
 use crate::{
-    ConfigArgs,
+    config::Config,
     files::{EntryType, FsEntry},
     output::{MultiStyled, entry::display_name},
     sorting::sort,
     style::ls_style,
 };
 
-pub fn short(roots: &Vec<FsEntry>, config: &ConfigArgs) {
-    if config.recurse {
+pub fn short(roots: &Vec<FsEntry>, config: &Config) {
+    if config.filter.recurse {
         let all = roots.iter().map(|e| e.get_all_dirs());
 
         all.for_each(|r| {
@@ -27,7 +27,7 @@ pub fn short(roots: &Vec<FsEntry>, config: &ConfigArgs) {
     }
 }
 
-fn display_single(entry: &FsEntry, config: &ConfigArgs, len: usize, index: usize) {
+fn display_single(entry: &FsEntry, config: &Config, len: usize, index: usize) {
     let output = short_display(entry, config);
     if len > 1 {
         println!("{}:", entry.name.clone().stylize().underlined().bold());
@@ -38,7 +38,7 @@ fn display_single(entry: &FsEntry, config: &ConfigArgs, len: usize, index: usize
     }
 }
 
-fn short_display(root: &FsEntry, config: &ConfigArgs) -> String {
+fn short_display(root: &FsEntry, config: &Config) -> String {
     let style = ls_style();
     if root.children.is_none() {
         return root.name.clone();
@@ -59,11 +59,11 @@ fn short_display(root: &FsEntry, config: &ConfigArgs) -> String {
 
     let mut curr = String::new();
     let mut line_pos = 0;
-    let files = sort(&children, config.sorting_mode, config.reverse_sort);
+    let files = sort(&children, config.sorting.mode, config.sorting.reverse);
 
     for f in &files {
         let mut output: MultiStyled<String> =
-            display_name(f, &style, config.no_suffix, config.icons);
+            display_name(f, &style, config.display.suffix, config.display.icons);
         pad_right(&mut output, longest_len);
 
         if line_pos >= files_per {
@@ -73,7 +73,7 @@ fn short_display(root: &FsEntry, config: &ConfigArgs) -> String {
         }
 
         if line_pos < files_per {
-            let between = if config.icons { "  " } else { " " };
+            let between = if config.display.icons { "  " } else { " " };
             output.push(between.to_string().stylize())
         }
 

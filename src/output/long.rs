@@ -1,4 +1,4 @@
-use crate::{ConfigArgs, files::FsEntry};
+use crate::{config::Config, files::FsEntry};
 
 // pub fn long(roots: &Vec<FsEntry>, config: &ConfigArgs) {
 //     if config.recurse {

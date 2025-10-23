@@ -10,7 +10,7 @@ use std::{
 
 use ignore::WalkBuilder;
 
-use crate::ConfigArgs;
+use crate::config::Config;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EntryType {
@@ -118,13 +118,13 @@ impl FsEntry {
         }
     }
 
-    pub fn from_path<P: AsRef<Path>>(path: P, config: &ConfigArgs) -> io::Result<Self> {
+    pub fn from_path<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<Self> {
         Self::create_from_path(path, config, 0)
     }
 
     fn create_from_path<P: AsRef<Path>>(
         path: P,
-        config: &ConfigArgs,
+        config: &Config,
         depth: usize,
     ) -> io::Result<Self> {
         let path = path.as_ref();
@@ -138,7 +138,9 @@ impl FsEntry {
 
         let mut children = None;
 
-        if e_type == EntryType::Directory && config.recurse && depth < config.depth || depth == 0 {
+        if e_type == EntryType::Directory && config.filter.recurse && depth < config.filter.depth
+            || depth == 0
+        {
             children = Some(Self::get_children(path, config, depth)?);
         }
 
@@ -147,15 +149,15 @@ impl FsEntry {
 
     fn get_children<P: AsRef<Path>>(
         path: P,
-        config: &ConfigArgs,
+        config: &Config,
         depth: usize,
     ) -> io::Result<EntryChildren> {
         let path = path.as_ref();
         let walk = WalkBuilder::new(path)
-            .hidden(!config.show_hidden)
+            .hidden(config.filter.hidden)
             .ignore(false)
             .require_git(true)
-            .git_ignore(config.git)
+            .git_ignore(config.filter.git)
             .max_depth(Some(1))
             .build();
         let mut children = Vec::new();
