@@ -103,6 +103,14 @@ impl FsEntry {
     }
 
     pub fn from_path<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<Self> {
+        Self::create_from_path(path, config, 0)
+    }
+
+    fn create_from_path<P: AsRef<Path>>(
+        path: P,
+        config: &Config,
+        depth: usize,
+    ) -> io::Result<Self> {
         let path = path.as_ref();
         let ext = path.extension().unwrap_or(OsStr::new("")).to_string_lossy();
         let metadata = fs::metadata(path)?;
@@ -115,20 +123,40 @@ impl FsEntry {
 
         let mut children = None;
 
-        if e_type == EntryType::Directory {
-            children = Some(Self::get_children(path, config)?);
+        if e_type == EntryType::Directory && config.recurse && depth < config.depth || depth == 0 {
+            children = Some(Self::get_children(path, config, depth)?);
         }
 
         Ok(Self::new(path, e_type, times, children))
     }
 
-    fn get_children<P: AsRef<Path>>(path: P, config: &Config) -> io::Result<EntryChildren> {
+    pub fn get_all_dirs(&self) -> Vec<Rc<Self>> {
+        let mut output = Vec::new();
+        if let Some(c) = self.children.as_ref() {
+            let children = c.iter().filter(|e| e.children.is_some()).cloned();
+            output.extend(children);
+            let child_children = c.iter().map(|c| c.get_all_dirs());
+            child_children.for_each(|c| output.extend(c));
+        }
+
+        output
+    }
+
+    fn get_children<P: AsRef<Path>>(
+        path: P,
+        config: &Config,
+        depth: usize,
+    ) -> io::Result<EntryChildren> {
         let path = path.as_ref();
         let rd = fs::read_dir(path)?;
         let mut children = Vec::new();
 
         for e in rd.flatten() {
-            children.push(Rc::new(Self::from_path(e.path(), config)?));
+            children.push(Rc::new(Self::create_from_path(
+                e.path(),
+                config,
+                depth + 1,
+            )?));
         }
 
         Ok(children)

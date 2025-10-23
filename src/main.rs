@@ -1,11 +1,12 @@
 use std::{io, path::PathBuf};
 
 use clap::ArgMatches;
+use crossterm::style::Stylize;
 
 use crate::{
     cli::{get_cli, get_sorting_mode},
     files::FsEntry,
-    output::short_display,
+    output::short,
     sorting::SortingMode,
 };
 
@@ -28,6 +29,13 @@ fn main() {
     let cli = get_cli();
     let matches = cli.get_matches();
 
+    let in_depth = matches
+        .get_one::<usize>("depth")
+        .copied()
+        .unwrap_or_default();
+
+    let depth = if in_depth == 0 { usize::MAX } else { in_depth };
+
     let config = Config {
         sorting_mode: get_sorting_mode(&matches),
         reverse_sort: matches
@@ -39,10 +47,7 @@ fn main() {
             .copied()
             .unwrap_or_default(),
         show_hidden: matches.get_one::<bool>("all").copied().unwrap_or_default(),
-        depth: matches
-            .get_one::<usize>("depth")
-            .copied()
-            .unwrap_or_default(),
+        depth,
     };
 
     let res = print_paths(matches, config);
@@ -60,7 +65,7 @@ fn print_paths(matches: ArgMatches, config: Config) -> io::Result<()> {
         .flat_map(|p| FsEntry::from_path(p, &config))
         .collect();
 
-    println!("{}", short_display(&entries[0], &config));
+    short(&entries, &config);
 
     Ok(())
 }

@@ -32,6 +32,13 @@ pub fn get_cli() -> Command {
                 .help("Display hidden files"),
         )
         .arg(
+            Arg::new("git")
+                .short('g')
+                .long("git")
+                .help("Respect .gitignore files")
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
             Arg::new("recurse")
                 .short('r')
                 .long("recurse")

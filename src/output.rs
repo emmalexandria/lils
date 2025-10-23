@@ -3,7 +3,7 @@ mod short;
 use std::fmt::Display;
 
 use crossterm::style::StyledContent;
-pub use short::short_display;
+pub use short::short;
 
 use crate::files::FsEntry;
 
