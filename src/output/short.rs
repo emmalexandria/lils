@@ -4,14 +4,14 @@ use crossterm::{
 };
 
 use crate::{
-    Config,
+    ConfigArgs,
     files::{EntryType, FsEntry},
-    output::MultiStyled,
+    output::{MultiStyled, entry::display_name},
     sorting::sort,
     style::ls_style,
 };
 
-pub fn short(roots: &Vec<FsEntry>, config: &Config) {
+pub fn short(roots: &Vec<FsEntry>, config: &ConfigArgs) {
     if config.recurse {
         let all = roots.iter().map(|e| e.get_all_dirs());
 
@@ -27,7 +27,7 @@ pub fn short(roots: &Vec<FsEntry>, config: &Config) {
     }
 }
 
-fn display_single(entry: &FsEntry, config: &Config, len: usize, index: usize) {
+fn display_single(entry: &FsEntry, config: &ConfigArgs, len: usize, index: usize) {
     let output = short_display(entry, config);
     if len > 1 {
         println!("{}:", entry.name.clone().stylize().underlined().bold());
@@ -38,7 +38,7 @@ fn display_single(entry: &FsEntry, config: &Config, len: usize, index: usize) {
     }
 }
 
-fn short_display(root: &FsEntry, config: &Config) -> String {
+fn short_display(root: &FsEntry, config: &ConfigArgs) -> String {
     let style = ls_style();
     if root.children.is_none() {
         return root.name.clone();
@@ -62,8 +62,7 @@ fn short_display(root: &FsEntry, config: &Config) -> String {
     let files = sort(&children, config.sorting_mode, config.reverse_sort);
 
     for f in &files {
-        let mut output: MultiStyled<String> = style.apply(f).into();
-        display_file(f, &mut output);
+        let mut output: MultiStyled<String> = display_name(f, &style);
         pad_right(&mut output, longest_len);
 
         if line_pos >= files_per {
@@ -87,13 +86,6 @@ fn short_display(root: &FsEntry, config: &Config) -> String {
     lines.join("\n")
 }
 
-fn display_file(file: &FsEntry, content: &mut MultiStyled<String>) {
-    let suffix = get_suffix(file);
-    if let Some(s) = suffix {
-        content.push(s.to_string().stylize())
-    }
-}
-
 fn pad_right(input: &mut MultiStyled<String>, length: usize) {
     let c_length = input.len();
     let mut pad = String::from("");
@@ -103,12 +95,4 @@ fn pad_right(input: &mut MultiStyled<String>, length: usize) {
     }
 
     input.push(pad.stylize())
-}
-
-fn get_suffix(file: &FsEntry) -> Option<char> {
-    match file.e_type {
-        EntryType::Directory => Some('/'),
-        EntryType::Socket => Some('='),
-        _ => None,
-    }
 }

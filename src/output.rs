@@ -1,3 +1,4 @@
+mod entry;
 mod short;
 
 use std::fmt::Display;

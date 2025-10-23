@@ -6,23 +6,24 @@ use crate::sorting::SortingMode;
 
 pub fn get_cli() -> Command {
     let long = command!("long").about("Print the long format");
-    let tree = command!("tree").about("Print the tree format").arg(
-        Arg::new("depth")
-            .short('d')
-            .long("depth")
-            .value_parser(value_parser!(usize))
-            .default_value("0"),
-    );
-    let explorer = command!("explorer").about("Interactive explorer mode");
+    let tree = command!("tree").about("Print the tree format");
+    let table = command!("table").about("Print the table format");
 
     command!()
-        .subcommands([long, tree, explorer])
+        .subcommands([long, tree, table])
         .arg(
             arg!([path] "Path to directories")
                 .value_parser(value_parser!(PathBuf))
                 .default_value("./")
                 .num_args(1..)
                 .global(true),
+        )
+        .arg(
+            Arg::new("icons")
+                .short('i')
+                .long("icons")
+                .help("Use Nerd Font icons")
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("all")

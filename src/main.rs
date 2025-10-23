@@ -17,10 +17,11 @@ mod sorting;
 mod style;
 
 #[derive(Clone, Copy, Debug)]
-pub struct Config {
+pub struct ConfigArgs {
     pub sorting_mode: SortingMode,
     pub reverse_sort: bool,
     pub show_hidden: bool,
+    pub git: bool,
     pub recurse: bool,
     pub depth: usize,
 }
@@ -36,7 +37,7 @@ fn main() {
 
     let depth = if in_depth == 0 { usize::MAX } else { in_depth };
 
-    let config = Config {
+    let config = ConfigArgs {
         sorting_mode: get_sorting_mode(&matches),
         reverse_sort: matches
             .get_one::<bool>("reverse")
@@ -47,13 +48,14 @@ fn main() {
             .copied()
             .unwrap_or_default(),
         show_hidden: matches.get_one::<bool>("all").copied().unwrap_or_default(),
+        git: matches.get_one::<bool>("git").copied().unwrap_or_default(),
         depth,
     };
 
     let res = display(matches, config);
 }
 
-fn display(matches: ArgMatches, config: Config) -> io::Result<()> {
+fn display(matches: ArgMatches, config: ConfigArgs) -> io::Result<()> {
     let paths: Vec<PathBuf> = matches
         .get_many::<PathBuf>("path")
         .unwrap()

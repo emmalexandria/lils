@@ -51,4 +51,5 @@ pub fn ls_style() -> LilsStyle {
     LilsStyle::default()
         .directory(ContentStyle::default().blue().bold())
         .socket(ContentStyle::default().green())
+        .set_ft(FileType::Executable, ContentStyle::default().red().bold())
 }
