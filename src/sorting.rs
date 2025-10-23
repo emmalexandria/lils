@@ -1,10 +1,11 @@
 use std::{fs, os::unix::fs::MetadataExt, path::Path, rc::Rc};
 
 use clap::ValueEnum;
+use serde::{Deserialize, Serialize};
 
 use crate::files::{EntryChildren, FsEntry};
 
-#[derive(Clone, Copy, ValueEnum, Debug, Default)]
+#[derive(Clone, Copy, ValueEnum, Debug, Default, Serialize, Deserialize)]
 pub enum SortingMode {
     Time,
     #[default]

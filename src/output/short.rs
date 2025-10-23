@@ -62,7 +62,8 @@ fn short_display(root: &FsEntry, config: &ConfigArgs) -> String {
     let files = sort(&children, config.sorting_mode, config.reverse_sort);
 
     for f in &files {
-        let mut output: MultiStyled<String> = display_name(f, &style);
+        let mut output: MultiStyled<String> =
+            display_name(f, &style, config.no_suffix, config.icons);
         pad_right(&mut output, longest_len);
 
         if line_pos >= files_per {
@@ -72,7 +73,8 @@ fn short_display(root: &FsEntry, config: &ConfigArgs) -> String {
         }
 
         if line_pos < files_per {
-            output.push(" ".to_string().stylize())
+            let between = if config.icons { "  " } else { " " };
+            output.push(between.to_string().stylize())
         }
 
         curr.push_str(&output.output());

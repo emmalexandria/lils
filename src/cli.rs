@@ -19,13 +19,6 @@ pub fn get_cli() -> Command {
                 .global(true),
         )
         .arg(
-            Arg::new("icons")
-                .short('i')
-                .long("icons")
-                .help("Use Nerd Font icons")
-                .action(ArgAction::SetTrue),
-        )
-        .arg(
             Arg::new("all")
                 .short('a')
                 .long("all")
@@ -37,6 +30,20 @@ pub fn get_cli() -> Command {
                 .short('g')
                 .long("git")
                 .help("Respect .gitignore files")
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("icons")
+                .short('i')
+                .long("icons")
+                .help("Use Nerd Font icons")
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("no-suffix")
+                .short('n')
+                .long("no-suffix")
+                .help("Disable filename suffixes")
                 .action(ArgAction::SetTrue),
         )
         .arg(

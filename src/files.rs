@@ -161,11 +161,13 @@ impl FsEntry {
         let mut children = Vec::new();
 
         for e in walk.flatten() {
-            children.push(Rc::new(Self::create_from_path(
-                e.path(),
-                config,
-                depth + 1,
-            )?));
+            if e.file_name() != "./" {
+                children.push(Rc::new(Self::create_from_path(
+                    e.path(),
+                    config,
+                    depth + 1,
+                )?));
+            }
         }
 
         Ok(children)
