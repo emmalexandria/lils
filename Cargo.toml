@@ -1,7 +1,9 @@
 [package]
 name = "lils"
+description = "lils is not ls. modern directory listing CLI."
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 clap = "4.5.50"
