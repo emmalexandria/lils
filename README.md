@@ -23,6 +23,12 @@ friendlier than this both in input and output.
 - File-type based colouring beyond directory, file, socket, and symlink
 - Fully configurable output incl. themes
 - More extensive use of coloured and styled output
+- As fast as `ls`
+
+### What `lils` is not
+- Cross-platform
+- Small
+- Low-dependency
 
 ## Usage
 If you have the Rust toolchain installed, run:
