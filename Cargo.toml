@@ -9,4 +9,5 @@ license = "MIT"
 [dependencies]
 clap = { version = "4.5.50", features = ["cargo", "derive"] }
 crossterm = "0.29.0"
+ignore = "0.4.24"
 pathdiff = "0.2.3"

@@ -50,10 +50,10 @@ fn main() {
         depth,
     };
 
-    let res = print_paths(matches, config);
+    let res = display(matches, config);
 }
 
-fn print_paths(matches: ArgMatches, config: Config) -> io::Result<()> {
+fn display(matches: ArgMatches, config: Config) -> io::Result<()> {
     let paths: Vec<PathBuf> = matches
         .get_many::<PathBuf>("path")
         .unwrap()
@@ -65,7 +65,12 @@ fn print_paths(matches: ArgMatches, config: Config) -> io::Result<()> {
         .flat_map(|p| FsEntry::from_path(p, &config))
         .collect();
 
-    short(&entries, &config);
+    match matches.subcommand() {
+        Some(("tree", matches)) => {
+            println!("tree")
+        }
+        _ => short(&entries, &config),
+    }
 
     Ok(())
 }
