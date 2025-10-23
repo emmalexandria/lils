@@ -1,3 +1,66 @@
+use std::{io, path::PathBuf};
+
+use clap::ArgMatches;
+
+use crate::{
+    cli::{get_cli, get_sorting_mode},
+    files::Directory,
+    output::short_display,
+    sorting::SortingMode,
+};
+
+mod cli;
+mod files;
+mod output;
+mod sorting;
+mod style;
+
+#[derive(Clone, Copy, Debug)]
+pub struct Config {
+    pub sorting_mode: SortingMode,
+    pub reverse_sort: bool,
+    pub show_hidden: bool,
+    pub recurse: bool,
+    pub depth: usize,
+}
+
 fn main() {
-    println!("Hello, world!");
+    let cli = get_cli();
+    let matches = cli.get_matches();
+
+    let config = Config {
+        sorting_mode: get_sorting_mode(&matches),
+        reverse_sort: matches
+            .get_one::<bool>("reverse")
+            .copied()
+            .unwrap_or_default(),
+        recurse: matches
+            .get_one::<bool>("recurse")
+            .copied()
+            .unwrap_or_default(),
+        show_hidden: matches.get_one::<bool>("all").copied().unwrap_or_default(),
+        depth: matches
+            .get_one::<usize>("depth")
+            .copied()
+            .unwrap_or_default(),
+    };
+
+    let res = print_paths(matches, config);
+}
+
+fn print_paths(matches: ArgMatches, config: Config) -> io::Result<()> {
+    let paths: Vec<PathBuf> = matches
+        .get_many::<PathBuf>("path")
+        .unwrap()
+        .cloned()
+        .collect();
+
+    let directories: Vec<Directory> = paths
+        .iter()
+        .flat_map(|p| Directory::from_path(p, config.recurse, config.depth))
+        .collect();
+
+    println!("{}", short_display(&directories[0], &config));
+
+    Ok(())
 }

@@ -1,10 +1,12 @@
 [package]
 name = "lils"
 description = "lils is not ls. modern directory listing CLI."
+authors = ["Emma Alexandria <emma.jellemabutler@gmail.com>"]
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
 
 [dependencies]
-clap = "4.5.50"
-clap-help = "1.5.0"
+clap = { version = "4.5.50", features = ["cargo", "derive"] }
+crossterm = "0.29.0"
+pathdiff = "0.2.3"
