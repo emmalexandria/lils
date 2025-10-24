@@ -1,13 +1,8 @@
 use crossterm::{style::Stylize, terminal::size};
 
-use crate::{
-    config::Config,
-    files::FsEntry,
-    style::ls_style,
-    util::{get_group_by_gid, get_user_by_uid},
-};
+use crate::{config::Config, files::FsEntry, style::ls_style};
 
-pub fn long(roots: &Vec<FsEntry>, config: &Config) {
+pub fn long(roots: &[FsEntry], config: &Config) {
     if config.filter.recurse {
         let all = roots.iter().map(|e| e.get_all_dirs());
 

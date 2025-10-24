@@ -1,8 +1,7 @@
 use std::{
-    env,
     ffi::OsStr,
     fs::{self, Permissions},
-    io, mem,
+    io,
     os::unix::fs::{FileTypeExt, MetadataExt, PermissionsExt},
     path::{Path, PathBuf},
     rc::Rc,
@@ -146,7 +145,7 @@ impl FsEntry {
     ) -> io::Result<Self> {
         let path = path.as_ref();
         let metadata = fs::metadata(path)?;
-        let e_type = EntryType::from_metadata(&metadata, &path)?;
+        let e_type = EntryType::from_metadata(&metadata, path)?;
         let times = Times {
             access: metadata.accessed().unwrap(),
             created: metadata.created().unwrap(),

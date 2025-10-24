@@ -1,17 +1,14 @@
-use crossterm::{
-    style::{StyledContent, Stylize},
-    terminal::size,
-};
+use crossterm::{style::Stylize, terminal::size};
 
 use crate::{
     config::Config,
-    files::{EntryType, FsEntry},
+    files::FsEntry,
     output::{MultiStyled, entry::display_name},
     sorting::sort,
     style::ls_style,
 };
 
-pub fn short(roots: &Vec<FsEntry>, config: &Config) {
+pub fn short(roots: &[FsEntry], config: &Config) {
     if config.filter.recurse {
         let all = roots.iter().map(|e| e.get_all_dirs());
 

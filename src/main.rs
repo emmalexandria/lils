@@ -21,12 +21,14 @@ fn main() {
     let cli = get_cli();
     let matches = cli.get_matches();
 
-    match matches.subcommand() {
-        Some(("config", _)) => {
-            Config::write_default();
-            return;
+    if let Some(("config", _)) = matches.subcommand() {
+        match Config::write_default() {
+            Ok(p) => println!(
+                "Successfully wrote default config to {}",
+                p.to_string_lossy()
+            ),
+            Err(e) => eprintln!("Error writing default config: {e}"),
         }
-        _ => {}
     }
 
     let config = Config::read().unwrap().override_with_args(&matches);
@@ -46,10 +48,10 @@ fn display(matches: ArgMatches, config: Config) -> io::Result<()> {
         .collect();
 
     match matches.subcommand() {
-        Some(("tree", matches)) => {
+        Some(("tree", _)) => {
             println!("tree")
         }
-        Some(("long", matches)) => long(&entries, &config),
+        Some(("long", _)) => long(&entries, &config),
         _ => short(&entries, &config),
     }
 

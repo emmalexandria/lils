@@ -8,7 +8,7 @@ use crate::{
     sorting::SortingMode,
 };
 
-const CONFIG_PATH: &'static str = ".config/lils.toml";
+const CONFIG_PATH: &str = ".config/lils.toml";
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct SortingConfig {
@@ -51,14 +51,14 @@ impl Config {
         if fs::exists(&path)? {
             let config_str = fs::read_to_string(path)?;
 
-            let de = toml::Deserializer::parse(&config_str).map_err(|e| {
+            let de = toml::Deserializer::parse(&config_str).map_err(|_| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
                     "toml configuration could not be parsed",
                 )
             })?;
 
-            let ret = Self::deserialize(de).map_err(|e| {
+            let ret = Self::deserialize(de).map_err(|_| {
                 io::Error::new(io::ErrorKind::InvalidInput, "could not deserialize toml")
             })?;
 
@@ -68,14 +68,14 @@ impl Config {
         }
     }
 
-    pub fn write_default() -> io::Result<()> {
+    pub fn write_default() -> io::Result<PathBuf> {
         let path = Self::get_path();
 
         let default = Self::default();
         let output = toml::to_string_pretty(&default).unwrap();
 
-        fs::write(path, output)?;
-        Ok(())
+        fs::write(&path, output)?;
+        Ok(path)
     }
 
     pub fn override_with_args(mut self, matches: &ArgMatches) -> Self {
