@@ -1,8 +1,9 @@
 use std::{
     env,
     ffi::OsStr,
-    fs, io,
-    os::unix::fs::{FileTypeExt, PermissionsExt},
+    fs::{self, Permissions},
+    io, mem,
+    os::unix::fs::{FileTypeExt, MetadataExt, PermissionsExt},
     path::{Path, PathBuf},
     rc::Rc,
     time,
@@ -10,7 +11,10 @@ use std::{
 
 use ignore::WalkBuilder;
 
-use crate::config::Config;
+use crate::{
+    config::Config,
+    util::{get_group_by_gid, get_user_by_uid},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EntryType {
@@ -89,6 +93,11 @@ pub type EntryChildren = Vec<Rc<FsEntry>>;
 #[derive(Debug, Clone)]
 pub struct FsEntry {
     pub name: String,
+    pub uid: u32,
+    pub u_name: Option<String>,
+    pub gid: u32,
+    pub g_name: Option<String>,
+    pub perms: Permissions,
     pub path: PathBuf,
     pub e_type: EntryType,
     pub times: Times,
@@ -101,6 +110,9 @@ impl FsEntry {
         e_type: EntryType,
         times: Times,
         children: Option<Vec<Rc<FsEntry>>>,
+        uid: u32,
+        gid: u32,
+        perms: Permissions,
     ) -> Self {
         let path = path.as_ref();
         let name = path
@@ -111,6 +123,11 @@ impl FsEntry {
 
         Self {
             name,
+            uid,
+            u_name: get_user_by_uid(uid),
+            gid,
+            g_name: get_group_by_gid(gid),
+            perms,
             path: path.into(),
             e_type,
             times,
@@ -144,7 +161,15 @@ impl FsEntry {
             children = Some(Self::get_children(path, config, depth)?);
         }
 
-        Ok(Self::new(path, e_type, times, children))
+        Ok(Self::new(
+            path,
+            e_type,
+            times,
+            children,
+            metadata.uid(),
+            metadata.gid(),
+            metadata.permissions(),
+        ))
     }
 
     fn get_children<P: AsRef<Path>>(

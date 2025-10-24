@@ -5,6 +5,7 @@ mod short;
 use std::fmt::Display;
 
 use crossterm::style::StyledContent;
+pub use long::long;
 pub use short::short;
 
 pub struct MultiStyled<D>

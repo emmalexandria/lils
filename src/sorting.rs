@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::files::{EntryChildren, FsEntry};
 
 #[derive(Clone, Copy, ValueEnum, Debug, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum SortingMode {
     Time,
     #[default]

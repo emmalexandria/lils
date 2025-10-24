@@ -1,14 +1,12 @@
 use std::{io, path::PathBuf};
 
 use clap::ArgMatches;
-use crossterm::style::Stylize;
 
 use crate::{
-    cli::{get_cli, get_sorting_mode},
+    cli::get_cli,
     config::Config,
     files::FsEntry,
-    output::short,
-    sorting::SortingMode,
+    output::{long, short},
 };
 
 mod cli;
@@ -17,6 +15,7 @@ mod files;
 mod output;
 mod sorting;
 mod style;
+mod util;
 
 fn main() {
     let cli = get_cli();
@@ -50,7 +49,7 @@ fn display(matches: ArgMatches, config: Config) -> io::Result<()> {
         Some(("tree", matches)) => {
             println!("tree")
         }
-        Some(("long", matches)) => {}
+        Some(("long", matches)) => long(&entries, &config),
         _ => short(&entries, &config),
     }
 
