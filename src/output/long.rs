@@ -54,6 +54,8 @@ fn long_display(root: &FsEntry, config: &Config) -> String {
     for f in &files {
         let mut output: MultiStyled<String> = MultiStyled::new();
         output.append(get_permission_string(f, &style));
+        output.push(f.u_name.as_ref().cloned().unwrap_or_default().stylize());
+        output.push(f.g_name.as_ref().cloned().unwrap_or_default().stylize());
 
         lines.push(output.output());
     }
