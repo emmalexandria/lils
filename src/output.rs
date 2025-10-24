@@ -53,6 +53,10 @@ impl<D: Display> MultiStyled<D> {
         self.sections.insert(index, content);
     }
 
+    pub fn append(&mut self, mut content: MultiStyled<D>) {
+        self.sections.append(&mut content.sections);
+    }
+
     pub fn section(&self, index: usize) -> Option<&StyledContent<D>> {
         if index < self.sections.len() {
             return Some(&self.sections[index]);

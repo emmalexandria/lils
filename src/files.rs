@@ -2,17 +2,13 @@ use std::{
     ffi::OsStr,
     fs::{self, Permissions},
     io,
-    os::{
-        fd::{AsFd, AsRawFd},
-        unix::fs::{FileTypeExt, MetadataExt, PermissionsExt},
-    },
+    os::unix::fs::{FileTypeExt, MetadataExt, PermissionsExt},
     path::{Path, PathBuf},
     rc::Rc,
     time,
 };
 
 use ignore::WalkBuilder;
-use nix::sys::stat::SFlag;
 
 use crate::{
     config::Config,

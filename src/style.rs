@@ -5,11 +5,42 @@ use crossterm::style::{ContentStyle, StyledContent, Stylize};
 use crate::files::{EntryType, FileType, FsEntry};
 
 #[derive(Default, Debug, Clone)]
+pub struct PermissionStyle {
+    pub f_type: ContentStyle,
+    pub owner: ContentStyle,
+    pub group: ContentStyle,
+    pub other: ContentStyle,
+}
+
+impl PermissionStyle {
+    pub const fn f_type(mut self, style: ContentStyle) -> Self {
+        self.f_type = style;
+        self
+    }
+
+    pub const fn owner(mut self, style: ContentStyle) -> Self {
+        self.owner = style;
+        self
+    }
+
+    pub const fn group(mut self, style: ContentStyle) -> Self {
+        self.group = style;
+        self
+    }
+
+    pub const fn other(mut self, style: ContentStyle) -> Self {
+        self.other = style;
+        self
+    }
+}
+
+#[derive(Default, Debug, Clone)]
 pub struct LilsStyle {
     pub directory: ContentStyle,
     pub symlink: ContentStyle,
     pub socket: ContentStyle,
     pub files: HashMap<FileType, ContentStyle>,
+    pub permissions: PermissionStyle,
 }
 
 impl LilsStyle {
@@ -31,6 +62,15 @@ impl LilsStyle {
     pub fn set_ft(mut self, f_type: FileType, style: ContentStyle) -> Self {
         self.files.insert(f_type, style);
         self
+    }
+
+    pub fn with_perms(mut self, perms: PermissionStyle) -> Self {
+        self.permissions = perms;
+        self
+    }
+
+    pub fn permissions_mut(&mut self) -> &mut PermissionStyle {
+        &mut self.permissions
     }
 
     pub fn apply(&self, file: &FsEntry) -> StyledContent<String> {
