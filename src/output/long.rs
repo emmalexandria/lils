@@ -4,6 +4,7 @@ use crate::{
     config::Config,
     files::{EntryType, FileType, FsEntry},
     output::MultiStyled,
+    sorting::sort,
     style::ls_style,
 };
 
@@ -40,13 +41,18 @@ fn long_display(root: &FsEntry, config: &Config) -> String {
         return root.name.clone();
     }
 
-    let lines: Vec<String> = Vec::new();
+    let mut lines: Vec<String> = Vec::new();
 
     let children = root.children.clone().unwrap();
     let (width, _) = size().unwrap_or((160, 0));
 
+    let files = sort(&children, config.sorting.mode, config.sorting.reverse);
+
     for f in &files {
-        let mut output: MultiStyled<String>;
+        let mut output: MultiStyled<String> = MultiStyled::new();
+        output.push(get_permission_string(f).stylize());
+
+        lines.push(output.output());
     }
 
     lines.join("\n")
@@ -57,9 +63,13 @@ fn get_permission_string(entry: &FsEntry) -> String {
         EntryType::Directory => 'd',
         EntryType::File(ft) => match ft {
             FileType::Executable => '*',
+            FileType::Block => 'b',
+            FileType::Char => 'c',
             _ => '-',
         },
         EntryType::Socket => 's',
         EntryType::Symlink => 'l',
     };
+
+    format!("{ft}")
 }

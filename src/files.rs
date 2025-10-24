@@ -77,11 +77,13 @@ impl FileType {
             .to_string();
         let metadata = fs::metadata(path)?;
         let permissions = metadata.permissions();
+
+        // Create a scope so we drop the fd quickly
         {
             let file = fs::File::open(path)?;
             let fd = file.as_fd();
             let f_stat = nix::sys::stat::fstat(fd)?;
-            let s_flag = SFlag::from_bits(f_stat.st_mode).unwrap();
+            let s_flag = SFlag::from_bits_truncate(f_stat.st_mode);
             if s_flag.contains(SFlag::S_IFBLK) {
                 return Ok(Self::Block);
             } else if s_flag.contains(SFlag::S_IFCHR) {
@@ -89,10 +91,12 @@ impl FileType {
             }
         }
 
+        // If it's not a block or char, we check for excectable bits
         if permissions.mode() & 0o111 != 0 {
             return Ok(Self::Executable);
         }
 
+        // Otherwise match on the file extension
         Ok(match ext.as_str() {
             "txt" | "md" => Self::Text,
             _ => Self::Text,
