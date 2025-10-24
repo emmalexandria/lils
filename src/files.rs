@@ -2,13 +2,17 @@ use std::{
     ffi::OsStr,
     fs::{self, Permissions},
     io,
-    os::unix::fs::{FileTypeExt, MetadataExt, PermissionsExt},
+    os::{
+        fd::{AsFd, AsRawFd},
+        unix::fs::{FileTypeExt, MetadataExt, PermissionsExt},
+    },
     path::{Path, PathBuf},
     rc::Rc,
     time,
 };
 
 use ignore::WalkBuilder;
+use nix::sys::stat::SFlag;
 
 use crate::{
     config::Config,
@@ -58,9 +62,9 @@ pub enum FileType {
     Text,
     Executable,
     // Block special file
-    BlockS,
+    Block,
     // Char special file
-    CharS,
+    Char,
 }
 
 impl FileType {
@@ -73,7 +77,17 @@ impl FileType {
             .to_string();
         let metadata = fs::metadata(path)?;
         let permissions = metadata.permissions();
-        let is_blk = 
+        {
+            let file = fs::File::open(path)?;
+            let fd = file.as_fd();
+            let f_stat = nix::sys::stat::fstat(fd)?;
+            let s_flag = SFlag::from_bits(f_stat.st_mode).unwrap();
+            if s_flag.contains(SFlag::S_IFBLK) {
+                return Ok(Self::Block);
+            } else if s_flag.contains(SFlag::S_IFCHR) {
+                return Ok(Self::Char);
+            }
+        }
 
         if permissions.mode() & 0o111 != 0 {
             return Ok(Self::Executable);
@@ -94,7 +108,6 @@ pub struct Times {
 }
 
 pub type EntryChildren = Vec<Rc<FsEntry>>;
-
 #[derive(Debug, Clone)]
 pub struct FsEntry {
     pub name: String,
