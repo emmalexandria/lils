@@ -1,6 +1,11 @@
 use crossterm::{style::Stylize, terminal::size};
 
-use crate::{config::Config, files::FsEntry, style::ls_style};
+use crate::{
+    config::Config,
+    files::{EntryType, FileType, FsEntry},
+    output::MultiStyled,
+    style::ls_style,
+};
 
 pub fn long(roots: &[FsEntry], config: &Config) {
     if config.filter.recurse {
@@ -35,9 +40,26 @@ fn long_display(root: &FsEntry, config: &Config) -> String {
         return root.name.clone();
     }
 
-    let children = root.children.clone().unwrap();
-    let (width, _) = size().unwrap_or((160, 0));
     let lines: Vec<String> = Vec::new();
 
+    let children = root.children.clone().unwrap();
+    let (width, _) = size().unwrap_or((160, 0));
+
+    for f in &files {
+        let mut output: MultiStyled<String>;
+    }
+
     lines.join("\n")
+}
+
+fn get_permission_string(entry: &FsEntry) -> String {
+    let ft = match entry.e_type {
+        EntryType::Directory => 'd',
+        EntryType::File(ft) => match ft {
+            FileType::Executable => '*',
+            _ => '-',
+        },
+        EntryType::Socket => 's',
+        EntryType::Symlink => 'l',
+    };
 }

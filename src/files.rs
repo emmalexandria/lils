@@ -57,6 +57,10 @@ impl EntryType {
 pub enum FileType {
     Text,
     Executable,
+    // Block special file
+    BlockS,
+    // Char special file
+    CharS,
 }
 
 impl FileType {
@@ -67,7 +71,9 @@ impl FileType {
             .unwrap_or_default()
             .to_string_lossy()
             .to_string();
-        let permissions = fs::metadata(path)?.permissions();
+        let metadata = fs::metadata(path)?;
+        let permissions = metadata.permissions();
+        let is_blk = 
 
         if permissions.mode() & 0o111 != 0 {
             return Ok(Self::Executable);
