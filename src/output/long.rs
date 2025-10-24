@@ -63,10 +63,10 @@ fn get_permission_string(entry: &FsEntry) -> String {
         EntryType::Directory => 'd',
         EntryType::File(ft) => match ft {
             FileType::Executable => '*',
-            FileType::Block => 'b',
-            FileType::Char => 'c',
             _ => '-',
         },
+        EntryType::BlockDevice => 'b',
+        EntryType::CharDevice => 'c',
         EntryType::Socket => 's',
         EntryType::Symlink => 'l',
     };

@@ -23,6 +23,8 @@ use crate::{
 pub enum EntryType {
     Directory,
     File(FileType),
+    BlockDevice,
+    CharDevice,
     Symlink,
     Socket,
 }
@@ -45,6 +47,14 @@ impl EntryType {
             return Ok(Self::File(FileType::from_path(path)?));
         }
 
+        if metadata.file_type().is_block_device() {
+            return Ok(Self::BlockDevice);
+        }
+
+        if metadata.file_type().is_char_device() {
+            return Ok(Self::CharDevice);
+        }
+
         if metadata.file_type().is_symlink() {
             return Ok(Self::Symlink);
         }
@@ -61,10 +71,6 @@ impl EntryType {
 pub enum FileType {
     Text,
     Executable,
-    // Block special file
-    Block,
-    // Char special file
-    Char,
 }
 
 impl FileType {
@@ -77,19 +83,6 @@ impl FileType {
             .to_string();
         let metadata = fs::metadata(path)?;
         let permissions = metadata.permissions();
-
-        // Create a scope so we drop the fd quickly
-        {
-            let file = fs::File::open(path)?;
-            let fd = file.as_fd();
-            let f_stat = nix::sys::stat::fstat(fd)?;
-            let s_flag = SFlag::from_bits_truncate(f_stat.st_mode);
-            if s_flag.contains(SFlag::S_IFBLK) {
-                return Ok(Self::Block);
-            } else if s_flag.contains(SFlag::S_IFCHR) {
-                return Ok(Self::Char);
-            }
-        }
 
         // If it's not a block or char, we check for excectable bits
         if permissions.mode() & 0o111 != 0 {

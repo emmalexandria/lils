@@ -42,6 +42,8 @@ impl LilsStyle {
                 style.apply(name)
             }
             EntryType::Symlink => self.symlink.apply(name),
+            EntryType::BlockDevice => name.stylize(),
+            EntryType::CharDevice => name.stylize(),
             EntryType::Socket => self.socket.apply(name),
         }
     }
